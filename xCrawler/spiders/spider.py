@@ -6,11 +6,6 @@ from datetime import datetime
 import re
 
 
-
-
-
-
-
 def get_total_pages(pagination_str):
             try:
                 total_pages = int(pagination_str.split('/')[1].strip())
@@ -28,21 +23,19 @@ def extract_last_digits(url):
 
 
 class QuotesSpider(scrapy.Spider):
-    name = "quotes"
+    name = "xdate"
     currentPage = 1
     base_url = "https://www.xdate.ch"
     operating_url = base_url + "/de/filter/p/"
     start_urls = [operating_url + str(currentPage)]
     hrefs = []  # Initialize an empty list to store href values
     debug_mode = True  # Set to False for live mode
-    debug_limit = 10 if debug_mode else float('inf')
+    debug_limit = 1 if debug_mode else float('inf')
     folder_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
 
     def __init__(self, *args, **kwargs):
         super(QuotesSpider, self).__init__(*args, **kwargs)
         self.base_path = 'crawls'  # Define base path once, if it's static
-
-    
 
     def parse(self, response):
         totalPagesValue = response.xpath('/html/body/div[1]/div[2]/nav/ul/li[2]/input/@value').get()
@@ -63,7 +56,6 @@ class QuotesSpider(scrapy.Spider):
             yield scrapy.Request(next_page_url, callback=self.parse)
         else:
             # Debugging: only process up to debug_limit pages
-            print(f"Collected hrefs from {self.currentPage} pages:", self.hrefs)
             for hrefLink in self.hrefs:
                 yield scrapy.Request(hrefLink, callback=self.parseContent)
 
@@ -83,7 +75,11 @@ class QuotesSpider(scrapy.Spider):
         text_content = ' '.join(response.css('.expandable-text__text.js-is-truncated-text::text').extract())
         if not text_content:
             text_content = 'NaN'
-        phone = response.css('.phone-number::text').get().replace(" ", "") or 'NaN'
+        phone_number = response.css('.phone-number::text').get()
+        if phone_number:
+            phone = phone_number.replace(" ", "")
+        else:
+            phone = 'NaN'
         category_texts = response.xpath('/html/body/div[1]/div[2]/div[8]/div[1]/div[1]/div[1]/text()').extract()
         category = category_texts[1].strip() if len(category_texts) > 1 else 'NaN'
         location = response.xpath('/html/body/div[1]/div[2]/div[8]/div[1]/div[1]/div[2]/text()').extract()[1].strip() or 'NaN'

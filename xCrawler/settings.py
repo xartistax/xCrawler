@@ -10,10 +10,11 @@ import os
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 BOT_NAME = 'xCrawler'
-LOG_LEVEL = 'DEBUG'
+LOG_LEVEL = 'INFO'
+LOG_FORMAT = '\x1b[0;0;34m%(asctime)s\x1b[0;0m \x1b[0;0;36m[%(name)s]\x1b[0;0m \x1b[0;0;31m%(levelname)s\x1b[0;0m: %(message)s'
 SPIDER_MODULES = ['xCrawler.spiders']
 NEWSPIDER_MODULE = 'xCrawler.spiders'
-IMAGES_STORE = "crawls"
+IMAGES_STORE = "images"
 
 # Database settings
 MYSQL_DATABASE = {
@@ -22,6 +23,9 @@ MYSQL_DATABASE = {
     'passwd': os.getenv('MYSQL_PASS'),
     'host': os.getenv('MYSQL_HOST'),
     'table': 'xTable',
+
+
+
 }
 
 
@@ -76,8 +80,8 @@ ROBOTSTXT_OBEY = True
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 ITEM_PIPELINES = {
-    'xCrawler.custom_images_pipeline.CustomImagesPipeline': 1,
-    'xCrawler.pipelines.MysqlConnectorPipeline': 2
+    'xCrawler.pipelines.MysqlConnectorPipeline': 100,
+    'xCrawler.custom_images_pipeline.CustomImagesPipeline': 200,
     
 }
 

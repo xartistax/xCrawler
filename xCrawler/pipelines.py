@@ -51,7 +51,8 @@ class MysqlConnectorPipeline:
             address MEDIUMTEXT NOT NULL,
             services LONGTEXT NOT NULL,
             url VARCHAR(255) NOT NULL,
-            origin VARCHAR(255) NOT NULL
+            origin VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             
         );
         """
@@ -63,18 +64,28 @@ class MysqlConnectorPipeline:
         self.conn.close()
 
     def process_item(self, item, spider):
-        # Use the tableName set in open_spider
+        # Check if an item with the same origin_id already exists
+        check_query = f"SELECT EXISTS(SELECT 1 FROM `{self.tableName}` WHERE orgin_id = %s)"
+        orgin_id = item.get('orgin_id', 'NO_ORIGIN_ID')
+
+        self.cursor.execute(check_query, (orgin_id,))
+        exists = self.cursor.fetchone()[0]
+
+        if exists:
+            spider.logger.info(f"Item with origin_id {orgin_id} already exists. Skipping...")
+            item['skip_images'] = True  # Mark the item to skip image processing
+            return item  # Skip this item
+
+        # If the item does not exist, proceed with insertion
         insert_query = f"INSERT INTO `{self.tableName}` (uuid, orgin_id, crawl_date, title, description, phone, category, location, address, services, url, origin) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
         # Fetching item values with more appropriate default values
         uuid = item.get('uuid', 'NO_UUID')
-        orgin_id = item.get('orgin_id', 'NO_ORIGIN_ID')
         crawl_date = item.get('crawl_date', 'NO_CRAWL_DATE')
         title = item.get('title', 'NO_TITLE')
         description = item.get('text', 'NO_DESCRIPTION')  # Ensure 'text' is the correct field key
         phone = item.get('phone', 'NO_PHONE')
         category = item.get('category', 'NO_CATEGORY')
-
         location = item.get('location', 'NO_LOCATION')
         address = item.get('address', 'NO_ADDRESS')
         services = item.get('services', 'NO_SERVICES')  # Corrected to 'services' based on table schema
@@ -82,10 +93,15 @@ class MysqlConnectorPipeline:
         origin = item.get('origin', 'NO_ORIGIN')
 
         try:
-            self.cursor.execute(insert_query, (uuid, orgin_id, crawl_date, title, description, phone, category, location, address, services, url, origin))
+            self.cursor.execute(insert_query, (
+            uuid, orgin_id, crawl_date, title, description, phone, category, location, address, services, url, origin))
             self.conn.commit()
         except mysql.connector.Error as e:
             self.conn.rollback()
             spider.logger.error(f"Error inserting item into database: {e}")
             raise DropItem(f"Error inserting item into database: {item}")
+
+
+
+        spider.logger.info(f"Item with origin_id {orgin_id} inserted successfully.")
         return item
