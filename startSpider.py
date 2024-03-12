@@ -5,6 +5,7 @@ from scrapy.utils.project import get_project_settings
 from xCrawler.spiders.spider import QuotesSpider  # Update with your project and spider names
 
 
+MAIL_PASS = os.environ.get('MAIL_PASS', 'defaultpassword')
 
 # Set up logging
 # Ensure the logs directory exists
@@ -41,7 +42,7 @@ settings.set('MAIL_FROM', 'demianfueglistaler@gmail.com')
 settings.set('MAIL_HOST', 'smtp.gmail.com')
 settings.set('MAIL_PORT', 465)  # Correct port for TLS
 settings.set('MAIL_USER', 'demianfueglistaler@gmail.com')
-settings.set('MAIL_PASS', 'hwwn vbhn npue lydb')  # Use an App Password
+settings.set('MAIL_PASS', MAIL_PASS)  # Use an App Password
 settings.set('MAIL_TLS', False)
 settings.set('MAIL_SSL', True)
  
