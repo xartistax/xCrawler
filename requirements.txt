@@ -30,6 +30,7 @@ requests==2.31.0
 requests-file==2.0.0
 Scrapy==2.11.1
 service-identity==24.1.0
+scrapy_user_agents==0.1.1
 six==1.16.0
 tldextract==5.1.1
 Twisted==24.3.0
