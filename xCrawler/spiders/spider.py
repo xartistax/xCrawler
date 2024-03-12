@@ -4,22 +4,55 @@ import requests
 import os
 from datetime import datetime
 import re
+from urllib.parse import urlencode, urlparse, parse_qs
+
+
+
+
+            
+
+ 
+
+
+API_KEY = '237152dd-b110-4915-9b43-c88fcee1361a'
+
+
+#def extract_last_digits(url):
+#        match = re.search(r'(\d+)$', url)
+#        if match:
+#            return match.group(1)  # Returns the matched digits
+#        else:
+#            return None  # No digits found
+
+
+def extract_last_digits(proxy_url):
+    # Parse the proxy URL
+    parsed_url = urlparse(proxy_url)
+    # Extract query parameters as a dictionary
+    query_params = parse_qs(parsed_url.query)
+    # Extract the actual URL from the 'url' query parameter
+    actual_url = query_params.get('url', [None])[0]
+    if actual_url:
+        # Now extract the last digits from the actual URL
+        match = re.search(r'(\d+)$', actual_url)
+        if match:
+            return match.group(1)  # Returns the matched digits
+    return None
 
 
 def get_total_pages(pagination_str):
-            try:
-                total_pages = int(pagination_str.split('/')[1].strip())
-                return total_pages
-            except (IndexError, ValueError):
-                print(f"Error: Invalid pagination string format '{pagination_str}'. Expected format 'current_page / total_pages'.")
-                return None
-def extract_last_digits(url):
-    match = re.search(r'(\d+)$', url)
-    if match:
-        return match.group(1)  # Returns the matched digits
-    else:
-        return None  # No digits found
- 
+    try:
+        total_pages = int(pagination_str.split('/')[1].strip())
+        return total_pages
+    except (IndexError, ValueError):
+        print(f"Error: Invalid pagination string format '{pagination_str}'. Expected format 'current_page / total_pages'.")
+        return None
+
+def get_scrapeops_url(url):
+    payload = {'api_key': API_KEY, 'url': url, 'bypass': 'cloudflare'}
+    proxy_url = 'https://proxy.scrapeops.io/v1/?' + urlencode(payload)
+    return proxy_url
+    
 
 
 class QuotesSpider(scrapy.Spider):
@@ -27,11 +60,21 @@ class QuotesSpider(scrapy.Spider):
     currentPage = 1
     base_url = "https://www.xdate.ch"
     operating_url = base_url + "/de/filter/p/"
-    start_urls = [operating_url + str(currentPage)]
+    #start_urls = [operating_url + str(currentPage)]
     hrefs = []  # Initialize an empty list to store href values
     debug_mode = True  # Set to False for live mode
     debug_limit = 1 if debug_mode else float('inf')
     folder_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    
+    
+    def start_requests(self):
+        # Initialize URLs for initial requests
+        urls = [
+            self.operating_url + str(self.currentPage),
+        ]
+        # Generate requests for each URL
+        for url in urls:
+            yield scrapy.Request(url=get_scrapeops_url(url), callback=self.parse)
 
     def __init__(self, *args, **kwargs):
         super(QuotesSpider, self).__init__(*args, **kwargs)
@@ -41,9 +84,6 @@ class QuotesSpider(scrapy.Spider):
         totalPagesValue = response.xpath('/html/body/div[1]/div[2]/nav/ul/li[2]/input/@value').get()
         total_pages = get_total_pages(totalPagesValue)
 
-        
-
-        
         for box in response.xpath('/html/body/div[1]/div[2]/div[6]/div'):
             href = box.css('.ad-teaser::attr(href)').get()
             if href:
@@ -53,11 +93,13 @@ class QuotesSpider(scrapy.Spider):
         if self.currentPage < min(self.debug_limit, total_pages):
             self.currentPage += 1
             next_page_url = self.operating_url + str(self.currentPage)
-            yield scrapy.Request(next_page_url, callback=self.parse)
+            #yield scrapy.Request(next_page_url, callback=self.parse)
+            yield scrapy.Request(get_scrapeops_url(next_page_url), callback=self.parse)
         else:
             # Debugging: only process up to debug_limit pages
             for hrefLink in self.hrefs:
-                yield scrapy.Request(hrefLink, callback=self.parseContent)
+                #yield scrapy.Request(hrefLink, callback=self.parseContent)
+                yield scrapy.Request(get_scrapeops_url(hrefLink), callback=self.parseContent)
 
     def parseContent(self, response):
         # Generate a UUID string for the folder name
@@ -65,7 +107,7 @@ class QuotesSpider(scrapy.Spider):
 
         
         
-
+ 
         # Continue with your logic
         ul = response.css('ul.service-list')
         li_texts = ul.css('li::text').getall()
