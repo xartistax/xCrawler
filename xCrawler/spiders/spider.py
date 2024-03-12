@@ -17,27 +17,15 @@ from urllib.parse import urlencode, urlparse, parse_qs
 API_KEY = '237152dd-b110-4915-9b43-c88fcee1361a'
 
 
-#def extract_last_digits(url):
-#        match = re.search(r'(\d+)$', url)
-#        if match:
-#            return match.group(1)  # Returns the matched digits
-#        else:
-#            return None  # No digits found
-
-
-def extract_last_digits(proxy_url):
-    # Parse the proxy URL
-    parsed_url = urlparse(proxy_url)
-    # Extract query parameters as a dictionary
-    query_params = parse_qs(parsed_url.query)
-    # Extract the actual URL from the 'url' query parameter
-    actual_url = query_params.get('url', [None])[0]
-    if actual_url:
-        # Now extract the last digits from the actual URL
-        match = re.search(r'(\d+)$', actual_url)
+def extract_last_digits(url):
+        match = re.search(r'(\d+)$', url)
         if match:
             return match.group(1)  # Returns the matched digits
-    return None
+        else:
+            return None  # No digits found
+
+
+
 
 
 def get_total_pages(pagination_str):
@@ -60,21 +48,13 @@ class QuotesSpider(scrapy.Spider):
     currentPage = 1
     base_url = "https://www.xdate.ch"
     operating_url = base_url + "/de/filter/p/"
-    #start_urls = [operating_url + str(currentPage)]
+    start_urls = [operating_url + str(currentPage)]
     hrefs = []  # Initialize an empty list to store href values
     debug_mode = True  # Set to False for live mode
     debug_limit = 1 if debug_mode else float('inf')
     folder_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     
-    
-    def start_requests(self):
-        # Initialize URLs for initial requests
-        urls = [
-            self.operating_url + str(self.currentPage),
-        ]
-        # Generate requests for each URL
-        for url in urls:
-            yield scrapy.Request(url=get_scrapeops_url(url), callback=self.parse)
+
 
     def __init__(self, *args, **kwargs):
         super(QuotesSpider, self).__init__(*args, **kwargs)
@@ -94,12 +74,12 @@ class QuotesSpider(scrapy.Spider):
             self.currentPage += 1
             next_page_url = self.operating_url + str(self.currentPage)
             #yield scrapy.Request(next_page_url, callback=self.parse)
-            yield scrapy.Request(get_scrapeops_url(next_page_url), callback=self.parse)
+            yield scrapy.Request(next_page_url, callback=self.parse)
         else:
             # Debugging: only process up to debug_limit pages
             for hrefLink in self.hrefs:
                 #yield scrapy.Request(hrefLink, callback=self.parseContent)
-                yield scrapy.Request(get_scrapeops_url(hrefLink), callback=self.parseContent)
+                yield scrapy.Request(hrefLink, callback=self.parseContent)
 
     def parseContent(self, response):
         # Generate a UUID string for the folder name
