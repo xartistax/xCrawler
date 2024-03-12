@@ -10,25 +10,28 @@ import scrapy
 
 
 class CustomImagesPipeline(ImagesPipeline):
+    
 
     def get_media_requests(self, item, info):
         if item.get('skip_images'):
-            return []  # Explicitly return an empty list to indicate no requests
-
-        for image_url in item['image_urls']:
-            yield scrapy.Request(image_url)
+            return []  # Skip the processing by not generating any media requests
+        return super().get_media_requests(item, info)
 
 
     def file_path(self, request, response=None, info=None, *, item=None):
         image_guid = hashlib.sha1(to_bytes(request.url)).hexdigest()
-        return f'{item["crawl_date"]}/{item["uuid"]}/{image_guid}.jpg'
+        # return f'{item["crawl_date"]}/{item["uuid"]}/{image_guid}.jpg'
+        return f'{item["uuid"]}/{image_guid}.jpg'
     
     def item_completed(self, results, item, info):
+        if item.get('skip_images'):
+            return item
+        
         # Call the superclass method to ensure images are handled as usual
         super_result = super().item_completed(results, item, info)
         
         # Define the directory based on item information
-        folder_path = os.path.join(self.store.basedir, item['crawl_date'], item['uuid'])
+        folder_path = os.path.join(self.store.basedir, item['uuid'])
         
         # Ensure the directory exists
         os.makedirs(folder_path, exist_ok=True)

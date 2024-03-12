@@ -12,12 +12,24 @@ from itemadapter import ItemAdapter
 
 import mysql.connector
 from scrapy.exceptions import DropItem
+from scrapy import signals
 
 class MysqlConnectorPipeline:
+    
+    def __init__(self, stats):
+        self.stats = stats
+        # Initialize other necessary attributes here
 
+    @classmethod
+    def from_crawler(cls, crawler):
+        # Instantiate the pipeline with access to the stats collector
+        pipeline = cls(crawler.stats)
+        return pipeline
+    
     def open_spider(self, spider):
+        self.stats.set_value('items_stored_in_db', 0)
+        
         db_settings = spider.settings.get('MYSQL_DATABASE')
-
         self.dbName = db_settings['db']  # Database name from settings
         self.tableName = db_settings['table']  # Table name from settings
 
@@ -73,7 +85,7 @@ class MysqlConnectorPipeline:
 
         if exists:
             spider.logger.info(f"Item with origin_id {orgin_id} already exists. Skipping...")
-            item['skip_images'] = True  # Mark the item to skip image processing
+            item['skip_images'] = True
             return item  # Skip this item
 
         # If the item does not exist, proceed with insertion
@@ -96,6 +108,8 @@ class MysqlConnectorPipeline:
             self.cursor.execute(insert_query, (
             uuid, orgin_id, crawl_date, title, description, phone, category, location, address, services, url, origin))
             self.conn.commit()
+
+            self.stats.inc_value('items_stored_in_db')
         except mysql.connector.Error as e:
             self.conn.rollback()
             spider.logger.error(f"Error inserting item into database: {e}")

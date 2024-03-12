@@ -1,0 +1,35 @@
+Spider name: xdate
+Start time: 2024-03-12 15:56:51.966714
+Stop time: 2024-03-12 15:56:56.002501
+Duration: 0:00:04.035787
+Total number of items scraped: 37
+Total number stored in db: 0
+
+
+Additional stats:
+log_count/INFO: 47
+items_stored_in_db: 0
+start_time: 2024-03-12 14:56:51.962665
+memusage/startup: 66338816
+memusage/max: 66338816
+scheduler/enqueued/memory: 38
+scheduler/enqueued: 38
+scheduler/dequeued/memory: 38
+scheduler/dequeued: 38
+downloader/request_count: 39
+downloader/request_method_count/GET: 39
+downloader/request_bytes: 15513
+robotstxt/request_count: 1
+downloader/response_count: 39
+downloader/response_status_count/200: 39
+downloader/response_bytes: 732866
+httpcompression/response_bytes: 5250974
+httpcompression/response_count: 39
+response_received_count: 39
+robotstxt/response_count: 1
+robotstxt/response_status_count/200: 1
+request_depth_max: 1
+item_scraped_count: 37
+elapsed_time_seconds: 4.039762
+finish_time: 2024-03-12 14:56:56.002427
+finish_reason: finished

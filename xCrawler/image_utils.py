@@ -8,7 +8,6 @@ def crop_bottom_20px(image_path):
         cropped_img.save(image_path)
 
 
-from PIL import Image
 
 
 def compress_image(input_image_path, output_image_path, quality=60):

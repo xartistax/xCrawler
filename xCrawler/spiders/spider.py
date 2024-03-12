@@ -82,7 +82,8 @@ class QuotesSpider(scrapy.Spider):
             phone = 'NaN'
         category_texts = response.xpath('/html/body/div[1]/div[2]/div[8]/div[1]/div[1]/div[1]/text()').extract()
         category = category_texts[1].strip() if len(category_texts) > 1 else 'NaN'
-        location = response.xpath('/html/body/div[1]/div[2]/div[8]/div[1]/div[1]/div[2]/text()').extract()[1].strip() or 'NaN'
+        location_extracted = response.xpath('/html/body/div[1]/div[2]/div[8]/div[1]/div[1]/div[2]/text()').extract()
+        location = location_extracted[1].strip() if len(location_extracted) > 1 else 'NaN'
 
         address = ' '.join(response.xpath('//*[@id="contact"]/p[2]/text()').extract()) or 'NaN'
         if not address:

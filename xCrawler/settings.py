@@ -72,18 +72,17 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
-#    'scrapy.extensions.telnet.TelnetConsole': None,
-#}
+
+
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
-ITEM_PIPELINES = {
-    'xCrawler.pipelines.MysqlConnectorPipeline': 100,
-    'xCrawler.custom_images_pipeline.CustomImagesPipeline': 200,
+#ITEM_PIPELINES = {
+#    'xCrawler.pipelines.MysqlConnectorPipeline': 100,
+    # 'xCrawler.custom_images_pipeline.CustomImagesPipeline': 200,
     
-}
+#}
 
 
 # Enable and configure the AutoThrottle extension (disabled by default)
