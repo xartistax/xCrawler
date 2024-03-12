@@ -12,7 +12,7 @@ class SpiderCloseSlackNotifier:
         crawler.signals.connect(ext.spider_closed, signal=signals.spider_closed)
 
         # Slack Webhook URL (Replace with your actual Webhook URL)
-        ext.webhook_url = 'https://hooks.slack.com/services/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'
+        ext.webhook_url = 'https://hooks.slack.com/services/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'
 
         return ext
 
