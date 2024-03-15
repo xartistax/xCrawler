@@ -26,7 +26,7 @@ class CustomImagesPipeline(ImagesPipeline):
     def item_completed(self, results, item, info):
         if item.get('skip_images'):
             return item
-        
+    
         # Call the superclass method to ensure images are handled as usual
         super_result = super().item_completed(results, item, info)
         
@@ -59,6 +59,20 @@ class CustomImagesPipeline(ImagesPipeline):
                 crop_bottom_20px(image_path)
                 compress_image(image_path, image_path)
 
+        # New code to rename the first downloaded image
+        first_image_info = next((res for res in results if res[0]), None)
+        if first_image_info:
+            old_path = os.path.join(self.store.basedir, first_image_info[1]['path'])
+            new_filename = '1.jpg'  # Or 'first.jpg'
+            new_path = os.path.join(folder_path, new_filename)
+
+            # Check if the new path already exists to avoid overwriting
+            if not os.path.exists(new_path):
+                os.rename(old_path, new_path)
+                # Optionally update the 'path' in results to reflect the new filename
+                first_image_info[1]['path'] = os.path.join(item['uuid'], new_filename)
+            else:
+                print(f"File {new_filename} already exists. Skipping rename.")
 
         # Return the result from the superclass method
         return super_result
