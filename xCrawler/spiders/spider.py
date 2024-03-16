@@ -1,3 +1,4 @@
+import shutil
 import scrapy
 import uuid
 import requests
@@ -24,10 +25,6 @@ def extract_last_digits(url):
         else:
             return None  # No digits found
 
-
-
-
-
 def get_total_pages(pagination_str):
     try:
         total_pages = int(pagination_str.split('/')[1].strip())
@@ -40,6 +37,8 @@ def get_scrapeops_url(url):
     payload = {'api_key': API_KEY, 'url': url, 'bypass': 'cloudflare'}
     proxy_url = 'https://proxy.scrapeops.io/v1/?' + urlencode(payload)
     return proxy_url
+
+
     
 
 
@@ -51,7 +50,7 @@ class QuotesSpider(scrapy.Spider):
     start_urls = [operating_url + str(currentPage)]
     hrefs = []  # Initialize an empty list to store href values
     debug_mode = True  # Set to False for live mode
-    debug_limit = 10 if debug_mode else float('inf')
+    debug_limit = 1 if debug_mode else float('inf')
     folder_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     
 

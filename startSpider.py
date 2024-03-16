@@ -15,9 +15,9 @@ os.makedirs(logs_dir, exist_ok=True)
 log_file_path = os.path.join(logs_dir, "crawl.log")  # Define your log file name
 logging.basicConfig(
     filename=log_file_path,
-    filemode='a',  # 'a' means append (add logs to the same file across runs)
+    filemode='w',  # 'a' means append (add logs to the same file across runs)
     format='%(levelname)s: %(message)s',
-    level=logging.WARNING
+    level=logging.CRITICAL
 )
 
 # Ensure logging is configured to capture Scrapy logs.
@@ -29,8 +29,9 @@ settings = get_project_settings()
 settings.set('TIME_ZONE' , 'Europe/Berlin')
 
 settings.set('ITEM_PIPELINES', {
-    'xCrawler.pipelines.MysqlConnectorPipeline': 100,
-    'xCrawler.custom_images_pipeline.CustomImagesPipeline': 200
+    'xCrawler.custom_images_pipeline.CustomImagesPipeline':100,
+    'xCrawler.pipelines.MysqlConnectorPipeline': 300
+    
 })
 settings.set('EXTENSIONS', { 
     'xCrawler.custom_timezone_extension.TimeZoneExtension': 400,
