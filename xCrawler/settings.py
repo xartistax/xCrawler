@@ -10,7 +10,7 @@ import os
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 BOT_NAME = 'xCrawler'
-LOG_LEVEL = 'INFO'
+LOG_LEVEL = 'DEBUG'
 LOG_FORMAT = '\x1b[0;0;34m%(asctime)s\x1b[0;0m \x1b[0;0;36m[%(name)s]\x1b[0;0m \x1b[0;0;31m%(levelname)s\x1b[0;0m: %(message)s'
 SPIDER_MODULES = ['xCrawler.spiders']
 NEWSPIDER_MODULE = 'xCrawler.spiders'

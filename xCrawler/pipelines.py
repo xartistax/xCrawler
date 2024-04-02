@@ -9,6 +9,7 @@
 
 
 
+import asyncio
 import shutil
 from itemadapter import ItemAdapter
 
@@ -19,6 +20,9 @@ import random
 import os
 
 from openai import OpenAI
+
+
+from xCrawler.settings import IMAGES_STORE
 
 
 
@@ -41,24 +45,47 @@ class MysqlConnectorPipeline:
 
 
 
-    def detectAndSetNameWithOpenAI(self , title, description):
-
+    def detectAndSetNameWithOpenAI(self, title, description):
         client = OpenAI(
-    # This is the default and can be omitted
             api_key=os.environ.get("OPENAI"),
         )
 
         chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Please define a Profile Name for the following profile description. Sometimes the name is in the title or in the description itself, then just use this one: {title} - {description}",
-                }
-            ],
+            messages = [
+                    {
+                        "role": "user",
+                        "content": f"Based on the following profile description, generate a realistic and creative profile name suitable for social media or professional networks. The name should directly reflect the essence and tone of the description, making it concise, memorable, and easy to read. If the personality suggested is fun or quirky, incorporating an appropriate emoji is encouraged. Aim for a natural naming style one might choose for an online presence, avoiding the use of prefixes like 'Name:', 'Username:', or any similar labels before the name itself. Description: {description}. Title: {title}."
+                    }
+                ],
+
             model="gpt-3.5-turbo",
         )
+    
+
+        # Access the result synchronously without using await
 
         return chat_completion.choices[0].message.content
+    
+
+
+
+    def reformatDescriptionWithOpenAI(self, description):
+        client = OpenAI(
+            api_key=os.environ.get("OPENAI"),
+        )
+
+        chat_completion = client.chat.completions.create(
+            messages = [
+                    {
+                        "role": "user",
+                        "content":  f"Convert the following text into HTML format, using paragraph tags for separate sentences or ideas, and emphasize important phrases with 'strong' or 'em' tags. Make sure the HTML is readable and well-structured.\n\nDescription: {description}"
+                    }
+                ],
+
+            model="gpt-3.5-turbo",
+        )
+        return chat_completion.choices[0].message.content
+
 
 
 
@@ -91,7 +118,7 @@ class MysqlConnectorPipeline:
 
         if spider.debug_mode:
             # If in debug mode spider shoud delete the images folder and delete the table
-            self.delete_folder_if_exists('../public/images')
+            self.delete_folder_if_exists(IMAGES_STORE)
 
             try:
                 cursor = self.conn.cursor()
@@ -118,6 +145,7 @@ class MysqlConnectorPipeline:
             crawl_date VARCHAR(255) NOT NULL, 
             title VARCHAR(255) NOT NULL,
             description LONGTEXT NOT NULL,
+            descriptionFormated LONGTEXT NOT NULL,
             name TEXT NOT NULL,
             phone VARCHAR(255) NOT NULL,
             category VARCHAR(255) NOT NULL,
@@ -139,7 +167,7 @@ class MysqlConnectorPipeline:
         self.cursor.close()
         self.conn.close()
 
-    def process_item(self, item, spider):
+    async def process_item(self, item, spider):
         # Check if an item with the same origin_id already exists
         check_query = f"SELECT EXISTS(SELECT 1 FROM `{self.tableName}` WHERE orgin_id = %s)"
         orgin_id = item.get('orgin_id', 'NO_ORIGIN_ID')
@@ -157,7 +185,8 @@ class MysqlConnectorPipeline:
             return item
 
         # If the item does not exist, proceed with insertion
-        insert_query = f"INSERT INTO `{self.tableName}` (uuid, orgin_id, crawl_date, title, description, name, phone, category, location, address, services, url, origin, likes, image_count) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        insert_query = f"INSERT INTO `{self.tableName}` (uuid, orgin_id, crawl_date, title, description, descriptionFormated, name, phone, category, location, address, services, url, origin, likes, image_count) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+
 
 
 
@@ -166,6 +195,7 @@ class MysqlConnectorPipeline:
         crawl_date = item.get('crawl_date', 'NO_CRAWL_DATE')
         title = item.get('title', 'NO_TITLE')
         description = item.get('text', 'NO_DESCRIPTION')  # Ensure 'text' is the correct field key
+        descriptionFormated = ""
         name = self.detectAndSetNameWithOpenAI(title, description)
         phone = item.get('phone', 'NO_PHONE')
         category = item.get('category', 'NO_CATEGORY')
@@ -179,7 +209,7 @@ class MysqlConnectorPipeline:
 
         try:
             self.cursor.execute(insert_query, (
-            uuid, orgin_id, crawl_date, title,  description, name, phone, category, location, address, services, url, origin, likes, image_count))
+            uuid, orgin_id, crawl_date, title,  description, descriptionFormated , name, phone, category, location, address, services, url, origin, likes, image_count))
             self.conn.commit()
 
             self.stats.inc_value('items_stored_in_db')
@@ -191,5 +221,5 @@ class MysqlConnectorPipeline:
 
 
         spider.logger.info(f"Item with origin_id {orgin_id} inserted successfully.")
-        print(self.detectAndSetNameWithOpenAI(title, description))
+
         return item
