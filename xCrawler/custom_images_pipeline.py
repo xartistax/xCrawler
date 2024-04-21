@@ -6,16 +6,29 @@ from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 from scrapy.utils.python import to_bytes
 
+
 class CustomImagesPipeline(ImagesPipeline):
+
+    def __init__(self, store_uri, *args, **kwargs):
+        super().__init__(store_uri, *args, **kwargs)
+
+
+
     def get_media_requests(self, item, info):
         if item.get('skip_images'):
             return []  # Skip processing by not generating any media requests
         return super().get_media_requests(item, info)
 
-    def file_path(self, request, response=None, info=None, item=None):
-        # This method now just prepares a unique path for initial download
-        image_guid = hashlib.sha1(to_bytes(request.url)).hexdigest()  # Unique hash of the image URL
-        return f'temp/{item["uuid"]}/{image_guid}.jpg'  # Temp path for initial download
+    
+    
+
+    def file_path(self, request, response=None, info=None, *, item=None):
+        image_url_hash = hashlib.shake_256(request.url.encode()).hexdigest(5)
+        image_perspective = request.url.split("/")[-2]
+        image_filename = f"{image_url_hash}_{image_perspective}.jpg"
+
+        return image_filename
+    
 
     def item_completed(self, results, item, info):
         if not all(ok for ok, _ in results):
@@ -30,6 +43,8 @@ class CustomImagesPipeline(ImagesPipeline):
         item['image_count'] = successful_downloads
 
         folder_path = os.path.join(self.store.basedir, item['uuid'])
+
+        
         os.makedirs(folder_path, exist_ok=True)  # Ensure the target directory exists
 
         self.write_item_info(item, folder_path)  # Write item info to a text file
@@ -54,7 +69,7 @@ class CustomImagesPipeline(ImagesPipeline):
                     file.write(f"{key.capitalize()}: {value}\n")
 
     def convert_image_to_webp(self, image_bytes, folder_path, image_index):
-        """Converts an image to WebP format and saves it with incrementing filename."""
+        # """Converts an image to WebP format and saves it with incrementing filename."""
         image = Image.open(BytesIO(image_bytes))
         image = image.convert('RGB')  # Convert to RGB in case it's not
         webp_filename = f"{image_index}.webp"

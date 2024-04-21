@@ -50,7 +50,7 @@ class QuotesSpider(scrapy.Spider):
     start_urls = [operating_url + str(currentPage)]
     hrefs = []  # Initialize an empty list to store href values
     debug_mode = True  # Set to False for live mode
-    debug_limit = 100 if debug_mode else float('inf')
+    debug_limit = 3 if debug_mode else float('inf')
     folder_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     
 

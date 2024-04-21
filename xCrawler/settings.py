@@ -14,21 +14,19 @@ LOG_LEVEL = 'DEBUG'
 LOG_FORMAT = '\x1b[0;0;34m%(asctime)s\x1b[0;0m \x1b[0;0;36m[%(name)s]\x1b[0;0m \x1b[0;0;31m%(levelname)s\x1b[0;0m: %(message)s'
 SPIDER_MODULES = ['xCrawler.spiders']
 NEWSPIDER_MODULE = 'xCrawler.spiders'
-IMAGES_STORE = "../public/images"
+#IMAGES_STORE = "../../public/images"
 #DOWNLOAD_DELAY = 2 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
 
 
 # Database settings
-MYSQL_DATABASE = {
-    'db': os.getenv('MYSQL_DB'),
-    'user': os.getenv('MYSQL_USER'),
-    'passwd': os.getenv('MYSQL_PASS'),
-    'host': os.getenv('MYSQL_HOST'),
+POSTGRES_DATABASE = {
+    'db': os.getenv('POSTGRES_DATABASE'),
+    'user': os.getenv('POSTGRES_USER'),
+    'passwd': os.getenv('POSTGRES_PASSWORD'),
+    'host': os.getenv('POSTGRES_HOST'),
+    'port': os.getenv('POSTGRES_PORT'),
     'table': 'xTable',
-
-
-
 }
 
 #DOWNLOAD_DELAY = 1.0

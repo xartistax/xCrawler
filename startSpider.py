@@ -27,10 +27,13 @@ logging.getLogger('scrapy').propagate = True
 
 settings = get_project_settings()
 settings.set('TIME_ZONE' , 'Europe/Berlin')
+settings.set('IMAGES_STORE', './public/images/')
+
+
 
 settings.set('ITEM_PIPELINES', {
     'xCrawler.custom_images_pipeline.CustomImagesPipeline':100,
-    'xCrawler.pipelines.MysqlConnectorPipeline': 300
+    'xCrawler.pipelines.PostgresPipeline': 300
     
 })
 settings.set('EXTENSIONS', { 
